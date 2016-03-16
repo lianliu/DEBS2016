@@ -1,0 +1,8 @@
+data/
+test_data/
+.idea/
+
+t.py
+query_1.py
+test.py
+test2.py

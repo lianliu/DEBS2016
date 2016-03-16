@@ -1,20 +1,17 @@
 First get yourself setup with link:http://docs.python-guide.org/en/latest/dev/virtualenvs/[Virtual Env] so we don't break any other Python stuff you have on your machine. After you've got that installed let's setup an environment for our app:
 
-[source]
 ----
 $ virtualenv app
 New python executable in cypher-app/bin/python
 Installing setuptools, pip...done.
 ----
 
-[source]
 ----
 $ source cypher-app/bin/activate
 ----
 
 The next step is to install the dependencies for the app:
 
-[source]
 ----
 (cypher-app)$ pip install -r requirements.txt
 ...
@@ -24,10 +21,3 @@ Cleaning up...
 
 And finally let's start up a Bottle web server:
 
-[source]
-----
-(cypher-app)$ python example.py
-Bottle v0.12.7 server starting up (using WSGIRefServer())...
-Listening on http://127.0.0.1:8080/
-Hit Ctrl-C to quit.
-----

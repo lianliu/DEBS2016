@@ -6,3 +6,5 @@ t.py
 query_1.py
 test.py
 test2.py
+
+process_data/*.pyc

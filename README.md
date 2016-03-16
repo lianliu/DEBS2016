@@ -7,13 +7,13 @@ Installing setuptools, pip...done.
 ```
 
 ```sh
-$ source cypher-app/bin/activate
+$ source app/bin/activate
 ```
 
 The next step is to install the dependencies for the app:
 
 ```sh
-(cypher-app)$ pip install -r requirements.txt
+(app)$ pip install -r requirements.txt
 ...
 Successfully installed py2neo
 Cleaning up...

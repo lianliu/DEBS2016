@@ -10,7 +10,8 @@ event_construction_dict={
   LIKE_KEY:(lambda like_str: \
     dict(zip(LIKE_SCHEMA,like_str.rstrip().split('|')))),
   POST_KEY:(lambda post_str: \
-    dict(zip(POST_SCHEMA,post_str.rstrip().split('|'))))}
+    dict(zip(POST_SCHEMA,post_str.rstrip().split('|'))))
+}
 
 def get_event(k,v):
     return event_construction_dict[k](v)

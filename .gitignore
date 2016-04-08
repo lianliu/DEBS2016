@@ -1,0 +1,13 @@
+bin/
+*.json
+
+lib/
+include/
+.idea/
+__pycache__/
+process_data/__pycache__/
+data/*.dat
+*.rdb
+
+query_1/
+query_2/

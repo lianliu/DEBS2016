@@ -24,3 +24,4 @@ POST_SCHEMA=['ts','post_id','user_id','post','user']
 # Key names
 RANKING_STORE = 'RANKING_STORE'
 RANKING = 'RANKING'
+WINDOW = 'WINDOW'

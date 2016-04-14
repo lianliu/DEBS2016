@@ -6,23 +6,37 @@ sys.path.append(os.path.abspath(parent_dir))
 
 import redis
 import constants
-
+from dateutil.parser import parse
+from . import redis_helpers 
 
 # initialize the store for ranking
 # set
 def init_ranking_store(redis):
 	initial_ranking = ("-", "-", "-")
 	ranking_store = constants.RANKING_STORE
-	__add_to_set(redis, ranking_store, initial_ranking)
+	redis_helpers.__add_to_set(redis, ranking_store, initial_ranking)
 
 
 def renew_ranking_store(redis, ranking):
 	ranking_store = constants.RANKING_STORE
 	redis.delete(ranking_store)
-	__add_to_set(redis, ranking_store, ranking)
+	redis_helpers.__add_to_set(redis, ranking_store, ranking)
 
 
-# TODO need refactoring
+# get ranking store
+# return a list of posts
+def get_ranking_store(redis):
+	name = constants.RANKING_STORE
+	posts = redis_helpers.__get_value_from_set(redis, name)
+	results = list()
+
+	for p in posts:
+		p = int(p)
+		results.insert(0, p)
+
+	return results
+
+
 # set for ranking
 # return 0 if new_ranking is not unique
 def add_to_ranking_store(redis, new_ranking):
@@ -36,43 +50,48 @@ def add_to_ranking_store(redis, new_ranking):
 def add_to_ranking(redis, post_id):
 	score = 10
 	key = constants.RANKING
-	__add_to_sorted_set(redis, key, post_id, score)
+	redis_helpers.__add_to_sorted_set(redis, key, post_id, score)
+	# get the size of the sorted set
+	# size = __get_size_sorted_set(redis, key)
+	# print("RANKING SIZE: %s"%(size))
 
 
 def get_posts_from_ranking(redis):
 	key = constants.RANKING
-	posts = __get_value_from_sorted_set(redis, key)
+	posts = redis_helpers.__get_value_from_sorted_set(redis, key)
 	return posts
+
 
 # remove value from sorted set
 # if it expires, when score is equal to or less than 0
 def remove_from_ranking(pipeline, element):
-	__remove_element_from_sorted_set(pipeline, element)
+	redis_helpers.__remove_element_from_sorted_set(pipeline, element)
 
 
 # increase score of a value in RANKING
 def increase_score(redis, value):
 	key = constants.RANKING
 	amount = 10
-	__modify_score(redis, key, value, amount)
+	redis_helpers.__modify_score(redis, key, value, amount)
 
 
 # decrease score of a value in RANKING
 def decrease_score(redis, value, amount):
 	key = constants.RANKING
 	amount = -amount
-	__modify_score(redis, key, value, amount)
+	redis_helpers.__modify_score(redis, key, value, amount)
 
 
 # get score of a value in RANKING
 def get_score(redis, value):
 	key = constants.RANKING
-	score = __check_score(redis, key, value)
+	score = redis_helpers.__check_score(redis, key, value)
 	return score
+
 
 # get top 3 scores from RANKING
 def get_top_3_scores(redis):
-	results = __get_top_scores(redis, 0, 2)
+	results = redis_helpers.__get_top_scores(redis, 0, 2)
 	return results
 
 
@@ -84,10 +103,10 @@ def find_ts(redis, element_id, flag):
 		key = "Comment:%s"%(element_id)
 
 	elif flag == "post":
-		key = "Post:%s"%(element_id) 
+		key = "Post:%s"%(element_id)
 
 	field = "timestamp"
-	ts = __find_field(redis, key, field).decode('utf-8')
+	ts = redis_helpers.__find_field(redis, key, field).decode('utf-8')
 	return ts
 
 
@@ -102,14 +121,14 @@ def find_last_modified(redis, element_id, flag):
 		key = "Post:%s"%(str(element_id))
 
 	field = "last_modified"
-	last_modified = __find_field(redis, key, field).decode("utf-8") 
+	last_modified = redis_helpers.__find_field(redis, key, field).decode("utf-8")
 	return last_modified
 
 
 # update ts from comment hash
 def update_ts(redis, element_id, ts, flag):
 	key = ""
-	value = dict()
+	field = "last_modified"
 
 	if flag == "comment":
 		key = str("Comment:%s"%(element_id))
@@ -117,8 +136,7 @@ def update_ts(redis, element_id, ts, flag):
 	elif flag == "post":
 		key = str("Post:%s"%(element_id))
 
-	value["timestamp"] = ts
-	__add_to_hash(redis, key, value)
+	redis_helpers.__update_field_to_hash(redis, key, field, ts)
 
 
 # TODO post related
@@ -129,14 +147,14 @@ def create_post_hash(redis, post_id, username, timestamp):
 	value["username"] = username
 	value["timestamp"] = timestamp
 	value["last_modified"] = timestamp
-	__add_to_hash(redis, key, value)
+	redis_helpers.__add_to_hash(redis, key, value)
 
 
 # find username of a post
 def find_username(redis, post_id):
 	key = "Post:%s"%(post_id)
 	field = "username"
-	username = __find_field(redis, key, field).decode('utf-8')
+	username = redis_helpers.__find_field(redis, key, field).decode('utf-8')
 	return username
 
 
@@ -151,29 +169,29 @@ def clear_post(pipeline, post_id):
 	key_2 = "P:%s"%(post_id)
 	key_3 = "Commenters:%s"%(post_id)
 
-	__remove_key_pipeline(pipeline, key_1)
-	__remove_key_pipeline(pipeline, key_2)
-	__remove_key_pipeline(pipeline, key_3)
+	redis_helpers.__remove_key_pipeline(pipeline, key_1)
+	redis_helpers.__remove_key_pipeline(pipeline, key_2)
+	redis_helpers.__remove_key_pipeline(pipeline, key_3)
 	remove_from_ranking(pipeline, post_id)
 
 
 # check if post active
 def is_post_active(redis, post_id):
 	key = "Post:%s"%(post_id)
-	is_post_active = __is_nil(redis, key)
+	is_post_active = redis_helpers.__is_nil(redis, key)
 	return is_post_active
 
 
 # add commenter to a post set
 def add_commenter_to_set(redis, post_id, user_id):
 	key = "Commenters:%s"%(post_id)
-	__add_to_set(redis, key, user_id)
+	redis_helpers.__add_to_set(redis, key, user_id)
 
 
 # get number of commenters of a post
 def commenters_number(redis, post_id):
 	key = "Commenters:%s"%(post_id)
-	size = __check_set_size(redis, key)
+	size = redis_helpers.__check_set_size(redis, key)
 	return size
 
 
@@ -186,148 +204,64 @@ def create_comment_hash(redis, comment_id, post_id, content, timestamp):
 	value["content"] = content
 	value["timestamp"] = timestamp
 	value["last_modified"] = timestamp
-	__add_to_hash(redis, key, value)
+	redis_helpers.__add_to_hash(redis, key, value)
 
 
 # get post_id from comment hash
 def find_post(redis, comment_id):
 	key = "Comment:%s"%(comment_id)
 	field = "post_id"
-	post_id = __find_field(redis, key, field).decode("utf-8")
+	post_id = redis_helpers.__find_field(redis, key, field).decode("utf-8")
 	return post_id
 
 
 # set for posts
 def add_comment_to_post(redis, post_id, comment_id):
 	key = "P:%s"%(post_id)
-	__add_to_set(redis, key, comment_id)
+	redis_helpers.__add_to_set(redis, key, comment_id)
+
+
+# remove comment from post set
+def remove_comment_from_post(redis, post_id, comment_id):
+	key = "P:%s"%(post_id)
+	redis_helpers.__remove_from_set(redis, key, comment_id)
 
 
 # get the comment IDs from post set
 def get_comment_from_post_set(redis, post_id):
 	key = "P:%s"%(post_id)
-	comments = __get_value_from_set(redis, key)
+	comments = redis_helpers.__get_value_from_set(redis, key)
 	return comments
 
 
 # check the size of set in comments of post
 def check_comments_number(redis, post_id):
 	key = "P:%s"%(post_id)
-	size = __check_set_size(redis, key)
+	size = redis_helpers.__check_set_size(redis, key)
 	return size
-
-
-# add like to its liked comment
-def add_like_to_comment(redis, comment_id, user_id):
-	key = "Likes:%s"%(comment_id)
-	__add_to_set(redis, key, user_id)
-
-
-#TODO private methods
-#
-# HASH
-# add to hash
-# value should be a dict
-def __add_to_hash(redis, key, value):
-	redis.hmset(key, value)
-
-
-# find value of a field from hash
-# return the value of that field
-def __find_field(redis, key, field):
-	value = redis.hget(key, field)
-	return value
-
-
-# SET
-# add to set
-def __add_to_set(redis, key, value):
-	redis.sadd(key, value)
-
-
-# get values from set
-def __get_value_from_set(redis, key):
-	pass
-
-
-# TODO remove from set    
-def __remove_from_set(redis, key):
-	values = redis.smembers(key)
-	return value
-
-
-# check the size of set
-def __check_set_size(redis, key):
-	size = redis.scard(key)
-	return size
-
-
-# SORTED_SET
-# add to sorted set
-def __add_to_sorted_set(redis, key, element, weight):
-	redis.zadd(key, element, weight)
-
-
-# get value of a sorted set
-def __get_value_from_sorted_set(redis, key):
-	value = redis.zrange(key, 0, -1)
-	return value
-
-
-# TODO delete elements in sorted set
-def __remove_element_from_sorted_set(pipeline, element):
-	key = constants.RANKING
-	pipeline.zrem(key, element)
-
-
-# TODO check the score of a particular element in sorted set
-def __check_score(redis, key, element):
-	score = redis.zscore(key, element)
-	return score
-
-
-# change the score of element in sorted set
-def __modify_score(redis, key, value, amount):
-	redis.zincrby(key, value, amount)
-
-
-# get the top scores from sorted set
-# return (value, score) pairs in array
-def __get_top_scores(redis, start, end):
-	key = constants.RANKING
-	scores = redis.zrange(key, start, end, desc=True, withscores=True)
-	return scores
-
-
-# REDIS_KEY
-# remove key from store by name
-def __remove_key(redis, key):
-	redis.delete(key)
-
-
-# remove key from store by name in pipeline
-def __remove_key_pipeline(pipeline, key):
-	pipeline.delete(key)
-
-
-# get the key from pattern
-# return the value of that key
-def __get_key_by_pattern(redis, pattern):
-	value = redis.keys(pattern=pattern)
-	return value
-
-
-# check if a key exists
-# return 0 if not exist
-def  __is_nil(redis, key):
-	is_nil = redis.exists(key)
-	return is_nil
 
 
 if __name__ == '__main__':
 	pool_1 = redis.ConnectionPool(host='localhost', port=6399, db=0)
 
 	test = redis.Redis(connection_pool=pool_1)
+
+	test.sadd("123", "1")
+
+	test.sadd("123", "2")
+
+	values = redis_helpers.__get_value_from_set(test, "123")
+
+	a = list()
+
+	for s in values:
+		s = s.decode("utf-8")
+		a.insert(0, s)
+
+	for i in range(len(a)):
+		print(a[i])
+
+	'''
 
 	init_ranking_store(test)
 
@@ -350,7 +284,7 @@ if __name__ == '__main__':
 	score = get_score(test, "123")
 
 	print(int(score))
-	'''
+
 	num = add_to_ranking_store(test, ranking)
 	print(num)
 

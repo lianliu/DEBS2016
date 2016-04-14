@@ -60,7 +60,6 @@ def main():
             #Add event_type information to the event to be sent
             event_to_send=events[key]
             event_to_send[EVENT_TYPE_KEY]=key
-
             #Send event with earliest timestamp
             publisher.send_json(event_to_send)
 

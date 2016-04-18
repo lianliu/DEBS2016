@@ -3,14 +3,63 @@ import constants
 
 #TODO private methods
 # LIST
-# TODO add to list
 def __add_to_list(redis, key, value):
-	pass
+	'''add to list
+
+	Args:
+		redis (class redis.client.Redis)
+		key (str)
+		value (str)
+	'''
+	redis.lpush(key, value)
 
 
-# TODO remove from list
+def __get_all_from_list(redis, key):
+	'''get all items in a list of key
+
+	Args:
+		redis (class redis.client.Redis)
+		key (str)
+
+	Returns:
+		list of items in key 
+	'''
+	items = redis.lrange(key, 0, -1)
+
+	return items
+
+
 def __remove_from_list(redis, key):
-	pass
+	'''remove from list
+
+	Args:
+		redis (class redis.client.Redis)
+		key (str)
+	'''
+	redis.rpop(key)
+
+
+def __remove_from_list_pipeline(pipeline, value):
+	'''remove from list in pipeline
+
+	Args:
+		pipeline
+		value (str)
+	'''
+	pipeline.rpop(value)
+
+
+def __check_list_len(redis, key):
+	'''return the length of list key
+	
+	Args:
+		redis (class redis.client.Redis)
+
+	Returns:
+		int
+	'''
+	length =redis.llen(key)
+	return length
 
 
 # HASH
@@ -25,6 +74,7 @@ def __add_to_hash(redis, key, value):
 def __find_field(redis, key, field):
 	value = redis.hget(key, field)
 	return value
+
 
 # update field to hash
 def __update_field_to_hash(redis, name, field, value):
@@ -98,6 +148,7 @@ def __get_size_sorted_set(redis, name):
 	size = redis.zcard(name)
 	return size
 
+
 # REDIS_KEY
 # remove key from store by name
 def __remove_key(redis, key):
@@ -116,8 +167,19 @@ def __get_key_by_pattern(redis, pattern):
 	return value
 
 
-# check if a key exists
-# return 0 if not exist
 def  __is_nil(redis, key):
+	'''check if a key exists
+
+	Args:
+		redis (class redis.client.Redis)
+		key (str)
+
+	Returns:
+		bool: 0 if not exists, 1 if exists
+	'''
 	is_nil = redis.exists(key)
 	return is_nil
+
+
+if __name__ == '__main__':
+	pass

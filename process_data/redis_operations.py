@@ -197,11 +197,10 @@ def commenters_number(redis, post_id):
 
 # TODO comment related
 # hash for comment
-def create_comment_hash(redis, comment_id, post_id, content, timestamp):
+def create_comment_hash(redis, comment_id, post_id, timestamp):
 	key = "Comment:%s"%(comment_id)
 	value = dict()
 	value["post_id"] = post_id
-	value["content"] = content
 	value["timestamp"] = timestamp
 	value["last_modified"] = timestamp
 	redis_helpers.__add_to_hash(redis, key, value)
@@ -242,10 +241,13 @@ def check_comments_number(redis, post_id):
 
 
 if __name__ == '__main__':
-	pool_1 = redis.ConnectionPool(host='localhost', port=6399, db=0)
+	pool_1 = redis.ConnectionPool(host='localhost', port=6379, db=0)
 
 	test = redis.Redis(connection_pool=pool_1)
 
+	print(type(test))
+	
+	'''
 	test.sadd("123", "1")
 
 	test.sadd("123", "2")
@@ -260,8 +262,6 @@ if __name__ == '__main__':
 
 	for i in range(len(a)):
 		print(a[i])
-
-	'''
 
 	init_ranking_store(test)
 

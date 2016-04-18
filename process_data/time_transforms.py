@@ -4,6 +4,7 @@ from datetime import timedelta
 from datetime import date
 import time
 
+
 # take 0.0001+s
 def parse_timestamp(ts):
 	time = parse(ts)
@@ -44,6 +45,16 @@ def compare_hms(time_1, time_2):
 
 	else:
 		return True
+
+
+def get_sec_diff(time_1, time_2):
+	diff = time_1 - time_2
+
+	seconds = diff / timedelta(seconds=1)
+
+	seconds = abs(seconds)
+
+	return seconds
 
 
 def get_days_difference(new_time, old_time):
@@ -118,7 +129,7 @@ if __name__ == '__main__':
 	ts_3 = "2010-02-13T14:18:54.127+0000"
 	ts_4 = "2010-03-04T17:08:46.321+0000"
 	ts_5 = "2010-12-29T17:08:46.321+0000"
-	ts_6 = "2010-12-30T07:07:45.321+0000"
+	ts_6 = "2010-12-30T17:08:46.321+0000"
 
 	t_1 = parse_timestamp(ts_1)
 	t_2 = parse_timestamp(ts_2)
@@ -127,13 +138,14 @@ if __name__ == '__main__':
 	t_5 = parse_timestamp(ts_5)
 	t_6 = parse_timestamp(ts_6)
 
+	print(get_sec_diff(t_5, t_6))
+	'''
 	print(is_earlier(t_5, t_6))
 
 	s = time.time()
 	print(get_days_difference(t_6, t_5))
 	print(time.time()-s)
-
-	'''
+	
 	ts = ts_1.split("T")
 	ts_2 = ts_3.split("T")
 

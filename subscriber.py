@@ -51,7 +51,6 @@ def main():
 
                 timestamp = event['ts']
                 current_ts = timestamp
-                content = event['comment']
                 post_id = event['post_commented']
                 comment_id = event['comment_id']
                 user_id = event['user_id']
@@ -65,7 +64,7 @@ def main():
                     post_id = redis_operations.find_post(active_store, parent_comment)
                     post_id_comment = post_id
 
-                redis_operations.create_comment_hash(active_store, comment_id, post_id, content, timestamp)
+                redis_operations.create_comment_hash(active_store, comment_id, post_id, timestamp)
 
                 is_post_active = redis_operations.is_post_active(active_store, post_id)
 

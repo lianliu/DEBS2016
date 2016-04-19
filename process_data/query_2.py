@@ -41,14 +41,16 @@ def check_list(redis, current_ts, d):
 
 		diff = time.get_sec_diff(current_time, comment_time)
 
+		print("number of comments before cleanup", r.check_window_len(redis))
+
 		if diff > d:
 			# remove from list
-			r.remove_comment_from_window_pipeline(pipeline, i)
+			r.remove_comment_from_window_pipeline(pipeline)
 
 			# remove comment hash
 			r.remove_comment_hash_pipeline(pipeline, comment_id)
 
-			print("remove%s"%(comment_id))
+			print("remove %s"%(comment_id))
 		
 		else:
 			break

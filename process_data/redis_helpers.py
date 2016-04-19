@@ -29,24 +29,24 @@ def __get_all_from_list(redis, key):
 	return items
 
 
-def __remove_from_list(redis, key):
+def __remove_from_list(redis):
 	'''remove from list
 
 	Args:
 		redis (class redis.client.Redis)
-		key (str)
 	'''
-	redis.rpop(key)
+	name = constants.WINDOW
+	redis.rpop(name)
 
 
-def __remove_from_list_pipeline(pipeline, value):
+def __remove_from_list_pipeline(pipeline):
 	'''remove from list in pipeline
 
 	Args:
 		pipeline
-		value (str)
 	'''
-	pipeline.rpop(value)
+	name = constants.WINDOW
+	pipeline.rpop(name)
 
 
 def __check_list_len(redis, key):

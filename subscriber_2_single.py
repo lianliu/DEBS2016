@@ -84,7 +84,7 @@ def main(d, k):
                 current_ts = event['ts']
 
                 util.check_list(store, current_ts, duration)
-                print(current_ts, r.check_window_len(store))
+                print(current_ts, "remaining comments", r.check_window_len(store))
                 # ranking = util.output_rank(redis, current_ts)
                 # print(ranking)
 

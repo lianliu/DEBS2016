@@ -6,10 +6,10 @@ sys.path.append(os.path.abspath(parent_dir))
 
 import constants
 from dateutil.parser import parse
-from . import redis_helpers
+#from . import redis_helpers
 
-# import redis_helpers
-# import redis
+import redis_helpers
+import redis
 
 
 def check_window_exists(redis):
@@ -62,24 +62,22 @@ def get_comments_from_window(redis):
 	return items
 
 
-def remove_comment_from_window(redis, value):
+def remove_comment_from_window(redis):
 	'''remove comment from WINDOW
 
 	Args:
 		redis (class redis.client.Redis)
-		value (str, comment_id:ts)
 	'''
-	redis_helpers.__remove_from_list(redis, value)
+	redis_helpers.__remove_from_list(redis)
 
 
-def remove_comment_from_window_pipeline(pipeline, value):
+def remove_comment_from_window_pipeline(pipeline):
 	'''remove comment from WINDOW in pipeline manner
 
 	Args:
 		pipeline
-		value (str, comment_id:ts)
 	'''
-	redis_helpers.__remove_from_list_pipeline(pipeline, value)
+	redis_helpers.__remove_from_list_pipeline(pipeline)
 
 
 def check_window_len(redis):
@@ -145,9 +143,19 @@ if __name__ == '__main__':
 	pool_1 = redis.ConnectionPool(host='localhost', port=6399, db=0)
 	store = redis.Redis(connection_pool=pool_1)
 
-	create_comment_hash(store, "123", "1234", "hello world", "2016-04-12")
+	add_comment_to_window(store, "2016-04-12", "123")
+	add_comment_to_window(store, "2016-04-13", "124")
+	add_comment_to_window(store, "2016-04-13", "125")
+
+	pipeline = store.pipeline()
+
+	remove_comment_from_window_pipeline(pipeline)
+	remove_comment_from_window_pipeline(pipeline)
+
+	pipeline.execute()
 
 	'''
+	create_comment_hash(store, "123", "1234", "hello world", "2016-04-12")
 	add_comment_to_window(store, "2016-04-12", "123")
 	add_comment_to_window(store, "2016-04-13", "124")
 	'''

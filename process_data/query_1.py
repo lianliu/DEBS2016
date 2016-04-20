@@ -35,6 +35,7 @@ def check_comments_in_post(active_store, post_id, current_ts):
 			comment = comment_id.decode("utf-8")
 
 			last_modified = r.find_last_modified(active_store, comment, flag)
+			last_modified_time = time.parse_timestamp(last_modified)
 			ts = r.find_ts(active_store, comment, flag)
 
 			current_time = time.parse_timestamp(current_ts)
@@ -42,7 +43,6 @@ def check_comments_in_post(active_store, post_id, current_ts):
 
 			is_active = time.is_active(current_time, comment_time)
 			if is_active:
-				last_modified_time = time.parse_timestamp(last_modified)
 
 				diff = time.get_days_difference(current_time, last_modified_time)
 

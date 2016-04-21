@@ -9,7 +9,9 @@ import process_data.redis_operations as r
 import constants
 import time as t
 import datetime
-import math
+import multiprocessing
+import redis as rd
+
 
 # check comments in a post 
 def check_comments_in_post(active_store, post_id, current_ts):
@@ -77,13 +79,20 @@ def check_comments(active_store, current_ts):
 		check_comments_in_post(active_store, post_id, current_ts)	
 
 
-def check_posts(redis, current_ts):
-	posts = r.get_posts_from_ranking(redis)
+def check_post(posts):
+	pool_1 = rd.ConnectionPool(host='localhost', port=6379, db=0)
+
+	redis = rd.Redis(connection_pool=pool_1)
+
 	flag = "post"
 
 	pipeline = redis.pipeline()
 
-	for post_id in posts:
+	current_ts = posts[1]
+
+	ps = posts[0]
+
+	for post_id in ps:
 		# post is post_id
 		# 1. get last_modified
 		# 2. get score 
@@ -145,7 +154,31 @@ def check_posts(redis, current_ts):
 						new_timestamp = time.to_timestamp(new_time)
 						r.update_ts(redis, post, new_timestamp, flag)
 
-	pipeline.execute()
+	pipeline.execute()	
+
+
+def check_posts(redis, current_ts):
+	posts = r.get_posts_from_ranking(redis)
+
+	posts_1 = (posts[0:int(len(posts)/4)], current_ts)
+	posts_2 = (posts[int(len(posts)/4):int(len(posts)/2)], current_ts)
+	posts_3 = (posts[int(len(posts)/2):int(len(posts)/4 * 3)], current_ts)
+	posts_4 = (posts[int(len(posts)/4 * 3):], current_ts)
+
+	p_1 = multiprocessing.Process(target=check_post, args=(posts_1,))
+	p_2 = multiprocessing.Process(target=check_post, args=(posts_2,))
+	p_3 = multiprocessing.Process(target=check_post, args=(posts_3,))
+	p_4 = multiprocessing.Process(target=check_post, args=(posts_4,))
+
+	p_1.start()
+	p_2.start()
+	p_3.start()
+	p_4.start()
+
+	p_1.join()
+	p_2.join()
+	p_3.join()
+	p_4.join()
 
 
 # get the new ranking 
@@ -454,7 +487,6 @@ def find_score_zero_time(redis, post_id, score, flag):
 		pre = each
 
 		if count > score:
-			# error
 			index = len_of_last_active - 1 - ((count - score) % len_of_last_active)
 			return last_active[index]
 
